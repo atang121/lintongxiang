@@ -47,7 +47,7 @@ itemsRouter.get('/', (req, res) => {
     const radiusKm = parseFloat(radius as string);
     items = items
       .map((item) => ({
-        ...item,
+        ...(item as Record<string, any>),
         distance: getDistance(userLat, userLng, Number(item.lat), Number(item.lng)),
       }))
       .filter((item) => {
