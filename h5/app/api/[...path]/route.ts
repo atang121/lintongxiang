@@ -4,9 +4,9 @@ const API_TARGET = 'http://134.175.68.92:3001';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { proxy: string[] } }
+  { params }: { params: { path: string[] } }
 ) {
-  const path = params.proxy.join('/');
+  const path = params.path.join('/');
   const targetUrl = `${API_TARGET}/api/${path}${request.nextUrl.search}`;
   
   try {
@@ -31,9 +31,9 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { proxy: string[] } }
+  { params }: { params: { path: string[] } }
 ) {
-  const path = params.proxy.join('/');
+  const path = params.path.join('/');
   const targetUrl = `${API_TARGET}/api/${path}${request.nextUrl.search}`;
   
   try {
@@ -59,9 +59,9 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { proxy: string[] } }
+  { params }: { params: { path: string[] } }
 ) {
-  const path = params.proxy.join('/');
+  const path = params.path.join('/');
   const targetUrl = `${API_TARGET}/api/${path}${request.nextUrl.search}`;
   
   try {
@@ -87,9 +87,9 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { proxy: string[] } }
+  { params }: { params: { path: string[] } }
 ) {
-  const path = params.proxy.join('/');
+  const path = params.path.join('/');
   const targetUrl = `${API_TARGET}/api/${path}${request.nextUrl.search}`;
   
   try {
