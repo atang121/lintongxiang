@@ -3,8 +3,13 @@
  * 区分开发/生产环境，配置 API 地址和微信参数
  */
 
+// 腾讯云后端 API 地址（用于生产环境）
+const PRODUCTION_API_BASE = 'http://134.175.68.92:3001/api';
+
 /**
- * 解析 API 根地址（每次调用，避免模块在 SSR 阶段先执行时把地址锁死成 localhost）。
+ * 解析 API 根地址
+ * - 生产环境（Vercel）：直接使用腾讯云后端
+ * - 开发环境：使用 localhost
  */
 export function resolveApiBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_API_BASE_URL) {
@@ -14,15 +19,15 @@ export function resolveApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
     
-    // Vercel 生产环境使用相对路径，由 Next.js API route 代理
-    if (origin.includes('vercel.app') || origin.includes('tonglinhui.cn')) {
-      return '/api';  // 走 Next.js 代理
+    // 所有非本地环境都使用腾讯云后端
+    if (origin.includes('vercel.app') || 
+        origin.includes('tonglinhui.cn') ||
+        origin !== 'http://localhost:3000') {
+      return PRODUCTION_API_BASE;
     }
     
-    // 本地开发：指向后端 3001
-    const url = new URL(origin);
-    const hostname = url.hostname === '0.0.0.0' ? '127.0.0.1' : url.hostname;
-    return `${url.protocol}//${hostname}:3001/api`;
+    // 本地开发
+    return 'http://localhost:3001/api';
   }
 
   return 'http://localhost:3001/api';
