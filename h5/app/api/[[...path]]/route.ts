@@ -4,10 +4,11 @@ const API_TARGET = 'http://134.175.68.92:3001';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path?: string[] } }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
-  const path = params.path?.join('/') || '';
-  const targetUrl = `${API_TARGET}/api/${path}${request.nextUrl.search}`;
+  const { path } = await params;
+  const pathStr = path?.join('/') || '';
+  const targetUrl = `${API_TARGET}/api/${pathStr}${request.nextUrl.search}`;
   
   try {
     const response = await fetch(targetUrl, {
@@ -25,10 +26,11 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { path?: string[] } }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
-  const path = params.path?.join('/') || '';
-  const targetUrl = `${API_TARGET}/api/${path}${request.nextUrl.search}`;
+  const { path } = await params;
+  const pathStr = path?.join('/') || '';
+  const targetUrl = `${API_TARGET}/api/${pathStr}${request.nextUrl.search}`;
   
   try {
     const body = await request.text();
@@ -47,10 +49,11 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { path?: string[] } }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
-  const path = params.path?.join('/') || '';
-  const targetUrl = `${API_TARGET}/api/${path}${request.nextUrl.search}`;
+  const { path } = await params;
+  const pathStr = path?.join('/') || '';
+  const targetUrl = `${API_TARGET}/api/${pathStr}${request.nextUrl.search}`;
   
   try {
     const body = await request.text();
@@ -69,10 +72,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { path?: string[] } }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
-  const path = params.path?.join('/') || '';
-  const targetUrl = `${API_TARGET}/api/${path}${request.nextUrl.search}`;
+  const { path } = await params;
+  const pathStr = path?.join('/') || '';
+  const targetUrl = `${API_TARGET}/api/${pathStr}${request.nextUrl.search}`;
   
   try {
     const response = await fetch(targetUrl, {
