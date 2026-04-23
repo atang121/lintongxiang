@@ -262,6 +262,7 @@ export default function ProfilePage() {
                   { href: '/profile/settings', icon: Settings, label: '账号设置', desc: '修改昵称、小区，退出登录' },
                   { href: '/feedback', icon: MessageCircle, label: '投诉与建议', desc: '问题反馈、功能建议都欢迎' },
                   ...(currentUser.isAdmin ? [{ href: '/admin', icon: ShieldCheck, label: '内容管理', desc: '管理员：审核和删除发布内容' }] : []),
+                  ...(currentUser.email === '273576151@qq.com' && !currentUser.isAdmin ? [{ href: '/admin', icon: ShieldCheck, label: '内容管理', desc: '管理员专属入口（需重新登录同步权限）' }] : []),
                 ].map((item) => (
                   <Link
                     key={item.href}

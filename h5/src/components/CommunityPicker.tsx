@@ -24,7 +24,7 @@ export function CommunityPicker({ value, districtValue = '', onChange, community
 
   const districtCommunities = communityOptions.filter((c) => c.district === district);
   const hasPresets = districtCommunities.length > 0;
-  const searchResults = hasPresets && !customMode
+  const searchResults = !customMode
     ? districtCommunities.filter((c) =>
         search.trim() === '' ? true : c.name.includes(search.trim())
       )
@@ -35,6 +35,11 @@ export function CommunityPicker({ value, districtValue = '', onChange, community
     setDistrict(d);
     setCustomMode(false);
     setCustomInput('');
+    setSearch('');
+  };
+
+  const handleEnableCustom = () => {
+    setCustomMode(true);
     setSearch('');
   };
 
@@ -142,8 +147,18 @@ export function CommunityPicker({ value, districtValue = '', onChange, community
             })}
           </div>
 
-          <div className="mt-3 rounded-2xl border border-dashed border-[#d7d2c7] bg-[#fbf8f3] px-3 py-2.5 text-xs leading-5 text-[#8a938d]">
-            当前区县已有预设小区，请优先从列表中选择，避免同一小区出现多个名字。
+          <div className="mt-3 space-y-2">
+            <div className="rounded-2xl border border-dashed border-[#d7d2c7] bg-[#fbf8f3] px-3 py-2.5 text-xs leading-5 text-[#8a938d]">
+              当前区县已有 {districtCommunities.length} 个预设小区，请优先从列表中选择。
+            </div>
+            <button
+              type="button"
+              onClick={handleEnableCustom}
+              onPointerDown={() => {}}
+              className="w-full rounded-2xl border border-[#c8dcd0] bg-[#f0f7f2] px-3 py-2.5 text-center text-sm font-medium text-[#5f806f] hover:bg-[#e6f2ec]"
+            >
+              如果列表中没有你的小区，点击这里手动补充
+            </button>
           </div>
         </>
       ) : (

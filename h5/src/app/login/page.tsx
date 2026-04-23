@@ -177,11 +177,6 @@ function LoginContent() {
           <p className="mt-3 text-sm leading-6 text-[#7d8892]">
             输入邮箱并获取验证码。首次使用将引导你完成注册，之后可直接登录。
           </p>
-          <div className="mt-4 rounded-2xl border border-[rgba(201,189,171,0.42)] bg-white/75 px-4 py-3 text-xs leading-6 text-[#6f7f76]">
-            {opsSource.mail_provider === 'smtp'
-              ? '当前环境会真实发送验证码到你填写的邮箱。'
-              : '当前环境仍处于预览发码模式：页面会显示验证码，便于联调；补齐 SMTP 配置后会改为真实发信。'}
-          </div>
         </div>
 
         <div className="paper-surface mt-5 rounded-[32px] p-5 shadow-sm">

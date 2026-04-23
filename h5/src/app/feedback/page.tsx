@@ -24,7 +24,17 @@ export default function FeedbackPage() {
     }
     setSubmitting(true);
     try {
-      await api.feedback.submit({ type, content: content.trim(), contact: contact.trim() });
+      const result = await api.feedback.submit({ type, content: content.trim(), contact: contact.trim() });
+      // 显示提交成功的渠道信息
+      const provider = result.data?.provider;
+      const providerNames: Record<string, string> = {
+        'feishu_webhook': '飞书群机器人',
+        'feishu_bitable': '飞书多维表格',
+        'email': '邮件通知',
+        'local': '本地存储',
+      };
+      const channelName = providerNames[provider] || provider;
+      show(`反馈已提交（通过 ${channelName}）`, 'success');
       setDone(true);
     } catch {
       show('提交失败，请稍后重试', 'error');
