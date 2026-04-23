@@ -5,7 +5,6 @@
 
 /**
  * 解析 API 根地址（每次调用，避免模块在 SSR 阶段先执行时把地址锁死成 localhost）。
- * 浏览器内按当前 origin 推断；务必在 Cloudflare/生产环境配置 NEXT_PUBLIC_API_BASE_URL。
  */
 export function resolveApiBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_API_BASE_URL) {
@@ -15,16 +14,15 @@ export function resolveApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
     
-    // Vercel 生产环境（www.tonglinhui.cn）直接代理到腾讯云后端
-    if (origin.includes('tonglinhui.cn') || origin.includes('vercel.app')) {
-      return 'http://134.175.68.92:3001/api';
+    // Vercel 生产环境使用相对路径，由 Next.js API route 代理
+    if (origin.includes('vercel.app') || origin.includes('tonglinhui.cn')) {
+      return '/api';  // 走 Next.js 代理
     }
     
-    // 本地开发
+    // 本地开发：指向后端 3001
     const url = new URL(origin);
     const hostname = url.hostname === '0.0.0.0' ? '127.0.0.1' : url.hostname;
-    const apiPort = url.port === '3000' || url.port === '3001' ? '3001' : url.port || '';
-    return `${url.protocol}//${hostname}${apiPort ? ':' + apiPort : ''}/api`;
+    return `${url.protocol}//${hostname}:3001/api`;
   }
 
   return 'http://localhost:3001/api';
