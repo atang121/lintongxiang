@@ -42,7 +42,8 @@ feedbackRouter.post('/', async (req, res) => {
     });
     if (webhookOk) providers.push('feishu_webhook');
   } catch (error) {
-    console.error('Feishu webhook failed:', error);
+    // 飞书 webhook 失败，记录但不中断
+    console.error('[Feedback] Feishu webhook failed:', error instanceof Error ? error.message : error);
   }
 
   // 2. 写入飞书多维表格反馈表
