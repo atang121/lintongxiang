@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd h5 && npm install && npm run build",
+  "outputDirectory": "h5/.next",
+  "installCommand": "cd h5 && npm install"
+}

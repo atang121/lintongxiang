@@ -8,9 +8,9 @@ const nextConfig: NextConfig = {
   // chunk 会 403，页面能打开但 React 无法水合 → 按钮点击完全无反应。
   // 通配符规则与 next/dist/server/app-render/csrf-protection 一致（按「.」分段匹配）。
   allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.*.*.*"],
-  // 把 Turbopack 的项目根锁定在 h5 目录内，避免把 .worktrees 等副本放大到监听范围。
+  // Turbopack 项目根（兼容本地开发和 Vercel 构建环境）
   turbopack: {
-    root: __dirname,
+    root: process.env.NODE_ENV === 'production' ? undefined : __dirname,
   },
 
   // 图片域名配置（允许加载外部图片）
