@@ -37,7 +37,7 @@ export default function FeedbackPage() {
       show(`反馈已提交 ✅`, 'success');
       setDone(true);
     } catch (err: any) {
-      show('反馈已记录，我们会尽快处理', 'warning');
+      show('反馈已记录，我们会尽快处理', 'error');
       setDone(true);
     } finally {
       setSubmitting(false);
