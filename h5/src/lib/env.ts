@@ -14,6 +14,13 @@ export function resolveApiBaseUrl(): string {
 
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
+    
+    // Vercel 生产环境（www.tonglinhui.cn）直接代理到腾讯云后端
+    if (origin.includes('tonglinhui.cn') || origin.includes('vercel.app')) {
+      return 'http://134.175.68.92:3001/api';
+    }
+    
+    // 本地开发
     const url = new URL(origin);
     const hostname = url.hostname === '0.0.0.0' ? '127.0.0.1' : url.hostname;
     const apiPort = url.port === '3000' || url.port === '3001' ? '3001' : url.port || '';
@@ -27,7 +34,7 @@ export function resolveApiBaseUrl(): string {
 export const WX_APP_ID = process.env.NEXT_PUBLIC_WX_APP_ID || '';
 
 // 微信 SDK 签名验证用
-export const WX_APP_SECRET = process.env.WX_APP_SECRET || '';
+export const WX_APP_SECRET = process.env.NEXT_PUBLIC_WX_APP_SECRET || '';
 
 // 地图服务
 export const TENCENT_MAP_KEY = process.env.NEXT_PUBLIC_TENCENT_MAP_KEY || '';
