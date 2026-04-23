@@ -50,13 +50,13 @@ itemsRouter.get('/', (req, res) => {
         ...(item as Record<string, any>),
         distance: getDistance(userLat, userLng, Number(item.lat), Number(item.lng)),
       }))
-      .filter((item) => {
+      .filter((item: any) => {
         // lat/lng 为 null 时 getDistance 返回 999，代表位置未知
         // 未知位置的物品（通常是需求/想要）按社区匹配兜底保留
         if (!item.lat || !item.lng) return true;
         return item.distance <= radiusKm;
       })
-      .sort((a, b) => {
+      .sort((a: any, b: any) => {
         // 有坐标的排前面，无坐标（需求）排后面
         if (a.lat && a.lng && (!b.lat || !b.lng)) return -1;
         if ((!a.lat || !a.lng) && b.lat && b.lng) return 1;
