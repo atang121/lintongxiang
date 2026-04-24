@@ -44,6 +44,7 @@ function columnExists(tableName: string, columnName: string) {
 
 function ensureColumn(tableName: string, columnName: string, definition: string) {
   if (!columnExists(tableName, columnName)) {
+    console.log(`[DB] ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
     db.run(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
   }
 }
@@ -320,15 +321,41 @@ export async function resetDemoData() {
   saveDb();
 }
 
+function logDbState(label: string) {
+  try {
+    const total = getOne('SELECT COUNT(*) as c FROM items')?.c ?? 0;
+    let wanted = 0, offer = 0;
+    try {
+      const rows = query('SELECT listing_type FROM items');
+      for (const r of rows) {
+        if ((r as Record<string,unknown>).listing_type === 'wanted') wanted++;
+        else offer++;
+      }
+    } catch(e: unknown) {
+      const err = e instanceof Error ? e.message : String(e);
+      wanted = -1; offer = -1;
+      console.log(`[DB] ${label} - listing_type query failed: ${err}`);
+    }
+    console.log(`[DB] ${label} - items: total=${total}, wanted=${wanted}, offer=${offer}`);
+  } catch(e: unknown) {
+    const err = e instanceof Error ? e.message : String(e);
+    console.log(`[DB] ${label} - logDbState failed: ${err}`);
+  }
+}
+
 export async function initDatabase(options: InitOptions = {}) {
   db = await createDatabase();
+  logDbState('After createDatabase (from file)');
   ensureSchema();
+  logDbState('After ensureSchema');
 
   const row = getOne('SELECT COUNT(*) as count FROM users');
   if (options.forceReset || Number(row?.count ?? 0) === 0) {
     await resetDemoData();
+    logDbState('After resetDemoData');
   } else {
     saveDb();
+    logDbState('After saveDb (existing DB)');
   }
 
   return db;
