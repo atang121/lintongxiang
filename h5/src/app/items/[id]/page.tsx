@@ -439,7 +439,6 @@ export default function ItemDetailPage() {
       </div>
 
       {/* 底部操作栏 - 始终在 grid 外部，保证 fixed 定位不受嵌套影响 */}
-      {!isKeyboardOpen && (
       <div
         className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#e8dcc8] bg-[rgba(255,255,255,0.97)] px-4 py-3 backdrop-blur-xl"
         style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
@@ -461,7 +460,6 @@ export default function ItemDetailPage() {
           {bottomAction()}
         </div>
       </div>
-      )}
 
       {showContact && (
         <div className="fixed inset-0 z-50 flex items-end">
