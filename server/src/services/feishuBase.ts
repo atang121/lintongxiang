@@ -250,7 +250,7 @@ export async function createFeedbackRecordInFeishu(payload: {
     联系方式: payload.contact || '',
     昵称: payload.userEmail || '',
     状态: '待处理',
-    提交时间: Math.floor(Date.now() / 1000),
+    提交时间: Date.now(),
   };
 
   try {
@@ -282,7 +282,7 @@ export async function createReviewRecordInFeishu(payload: {
     发布人: payload.ownerNickname,
     小区: payload.community,
     状态: '待审核',
-    提交时间: Math.floor(Date.now() / 1000),
+    提交时间: Date.now(),
   };
 
   if (coverImage) {
@@ -310,7 +310,7 @@ export async function createCommunitySubmissionInFeishu(payload: {
     小区名称: payload.communityName,
     区县: payload.district,
     状态: '待审核',
-    提交时间: Math.floor(Date.now() / 1000),
+    提交时间: Date.now(),
   };
 
   try {
