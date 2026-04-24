@@ -92,7 +92,7 @@ function LoginContent() {
           : '验证码已准备好，请继续输入 6 位验证码';
       showMessage(okMsg, 'success');
       toast(result.data.delivery?.provider === 'smtp' ? '验证码已发送，请查收邮箱' : '验证码已就绪', 'success');
-      setCodeCooldown(60); // 发送成功后开始60秒倒计时
+      setCodeCooldown(300); // 发送成功后开始5分钟倒计时（与验证码有效期一致）
     } catch (error: any) {
       const errMsg = error.message || '验证码发送失败，请稍后再试';
       showMessage(errMsg, 'error');
