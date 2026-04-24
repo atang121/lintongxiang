@@ -134,7 +134,7 @@ export default function FeedbackPage() {
             onClick={handleSubmit}
             onPointerDown={() => {}}
             disabled={submitting || content.trim().length < 5}
-            className="relative z-10 w-full rounded-full bg-[#3d5c4a] py-3.5 text-sm font-bold text-white shadow-sm active:brightness-90 disabled:opacity-50"
+            className="relative z-10 w-full rounded-full bg-[#3d5c4a] py-3.5 text-sm font-bold text-white shadow-sm active:brightness-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitting ? '提交中...' : '提交反馈'}
           </button>

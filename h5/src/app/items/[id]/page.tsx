@@ -276,8 +276,9 @@ export default function ItemDetailPage() {
   };
 
   return (
-    <div className="min-h-screen pb-28 lg:pb-10">
-      <div className="page-shell !pt-6">
+    <div className="min-h-screen">
+      {/* 顶栏 */}
+      <div className="page-shell !pt-6 !pb-0">
         <div className="mb-4 flex items-center justify-between">
           <button
             onClick={() => router.back()}
@@ -289,7 +290,10 @@ export default function ItemDetailPage() {
             {mode.icon} {mode.text}
           </div>
         </div>
+      </div>
 
+      {/* 主内容区 */}
+      <div className="page-shell !pt-0 pb-24">
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_420px]">
           <section className="space-y-4 xl:sticky xl:top-24 xl:self-start">
             <div className="overflow-hidden rounded-[34px] border border-[rgba(201,189,171,0.42)] bg-[#f7efe4] shadow-[0_22px_60px_rgba(176,157,135,0.12)]">
@@ -434,6 +438,7 @@ export default function ItemDetailPage() {
         </div>
       </div>
 
+      {/* 底部操作栏 - 始终在 grid 外部，保证 fixed 定位不受嵌套影响 */}
       {!isKeyboardOpen && (
       <div
         className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#e8dcc8] bg-[rgba(255,255,255,0.96)] px-4 py-3 backdrop-blur-xl xl:hidden"

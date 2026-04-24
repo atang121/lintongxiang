@@ -216,8 +216,9 @@ export default function AdminPage() {
             </select>
             <button
               onClick={handleBroadcast}
+              onPointerDown={() => {}}
               disabled={broadcasting || !notifTitle.trim() || !notifContent.trim()}
-              className="flex-1 rounded-xl bg-[#1f3a30] py-2 text-sm font-semibold text-white disabled:opacity-50 active:bg-[#173026]"
+              className="flex-1 rounded-xl bg-[#1f3a30] py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 active:bg-[#173026]"
             >
               {broadcasting ? '发送中...' : '📢 推送给所有用户'}
             </button>
