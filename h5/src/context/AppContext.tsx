@@ -252,6 +252,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         listing_type: filters.listingType !== 'all' ? filters.listingType : undefined,
         ...params,
       });
+      console.log('[AppContext] refreshItems done, got', result.data.length, 'items, filters.listingType=', filters.listingType, 'first item:', result.data[0]?.listing_type);
       setItems(result.data.map(normalizeItem));
     } catch (err) {
       console.error('加载物品失败:', err);
@@ -340,7 +341,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     // 闲置 vs 需求 过滤
     if (filters.listingType !== 'all') {
-      result = result.filter((item) => item.listingType === filters.listingType);
+      result = result.filter((item) => {
+        const match = item.listingType === filters.listingType;
+        if (!match) console.log('[getFilteredItems] filter out:', item.id, 'listingType=', item.listingType, 'wanted', filters.listingType);
+        return match;
+      });
     }
 
     if (filters.category !== 'all') {
