@@ -90,6 +90,17 @@ export function PublishClient() {
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
 
+    const maxMb = opsConfig.image_upload_max_mb || 8;
+    const maxBytes = maxMb * 1024 * 1024;
+
+    // 先做大小预检，给出友好提示
+    const oversized = files.filter((f) => f.size > maxBytes);
+    if (oversized.length > 0) {
+      show(`有图片超过 ${maxMb}MB，请先压缩后再上传（可用微信压缩：选中图片 → 发送图片 → 勾选"原图"以外的选项）`, 'error');
+      event.target.value = '';
+      return;
+    }
+
     const remaining = opsConfig.image_upload_max_count - images.length;
     const picked = files.slice(0, remaining);
 
@@ -123,14 +134,20 @@ export function PublishClient() {
               )
             );
           } catch (error: any) {
+            const msg = error?.message || '';
+            const isSizeError = msg.includes('413') || msg.includes('payload') || msg.includes('body');
             setImages((prev) =>
               prev.map((entry) =>
                 entry.id === item.id
-                  ? { ...entry, uploading: false, error: error.message || '上传失败' }
+                  ? { ...entry, uploading: false, error: isSizeError ? `图片过大（建议${opsConfig.image_upload_max_mb}MB以内）` : '上传失败' }
                   : entry
               )
             );
-            show('有图片上传失败了，请删除后重新上传', 'error');
+            if (isSizeError) {
+              show(`图片过大，请压缩后再上传（手机拍照建议用微信压缩：发送图片时取消勾选"原图"）`, 'error');
+            } else {
+              show('有图片上传失败了，请删除后重新上传', 'error');
+            }
           }
         })
       );
@@ -363,7 +380,7 @@ export function PublishClient() {
           <p className="mt-2 text-xs text-[#98a2aa]">
             {isWanted
               ? '求购信息可以不传图；如果有教材封面、版本页或示意图，会更容易被准确回应。'
-              : '第一张图片将作为封面，建议在自然光下拍摄，效果更好。'}
+              : `第一张图片将作为封面，建议在自然光下拍摄，效果更好。支持 JPG/PNG/WebP，建议每张不超过 ${opsConfig.image_upload_max_mb}MB，最多 ${opsConfig.image_upload_max_count} 张。`}
           </p>
         </div>
 
