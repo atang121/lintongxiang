@@ -239,7 +239,9 @@ export async function createFeedbackRecordInFeishu(payload: {
   userId?: string;
   userNickname?: string;
 }) {
+  console.log('[Feishu] createFeedbackRecord called, isConfigured:', isFeishuBaseConfigured(), 'tableId:', process.env.FEISHU_FEEDBACK_TABLE_ID);
   if (!isFeishuBaseConfigured() || !process.env.FEISHU_FEEDBACK_TABLE_ID) {
+    console.log('[Feishu] createFeedbackRecord skipped: not configured');
     return false;
   }
 
@@ -255,6 +257,7 @@ export async function createFeedbackRecordInFeishu(payload: {
 
   try {
     await createTableRecord(process.env.FEISHU_FEEDBACK_TABLE_ID, fields);
+    console.log('[Feishu] createFeedbackRecord succeeded, fields:', JSON.stringify(fields));
     return true;
   } catch (error) {
     console.error('[Feishu] createFeedbackRecord failed:', error);
