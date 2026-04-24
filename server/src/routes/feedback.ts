@@ -2,7 +2,6 @@ import { Router } from 'express';
 
 import { getAuthUserId } from '../lib/session';
 import { getOne, run, uuid } from '../models/db';
-import { getMailService } from '../services/mail';
 import { sendFeishuWebhookNotification } from '../services/feishuWebhook';
 import { createFeedbackRecordInFeishu } from '../services/feishuBase';
 
@@ -62,23 +61,7 @@ feedbackRouter.post('/', async (req, res) => {
     console.error('Feishu bitable write failed:', error);
   }
 
-  // 3. 发送邮件通知（兜底）
-  try {
-    const delivery = await getMailService().sendFeedbackNotification?.({
-      type: trimmedType,
-      content: trimmedContent,
-      contact: trimmedContact,
-      userEmail: user?.email ? String(user.email) : undefined,
-      userId: user?.id ? String(user.id) : undefined,
-    });
-    if (delivery?.provider && delivery.provider !== 'preview') {
-      providers.push('email');
-    }
-  } catch (error) {
-    console.error('Email notification failed:', error);
-  }
-
-  // 4. 本地数据库存档
+  // 3. 本地数据库存档
   run(
     `INSERT INTO feedback_entries
       (id, user_id, user_email, type, content, contact, provider, status, created_at)
