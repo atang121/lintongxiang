@@ -250,6 +250,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         age_range: filters.ageRange !== 'all' ? filters.ageRange : undefined,
         exchange_mode: filters.exchangeMode !== 'all' ? filters.exchangeMode : undefined,
         listing_type: filters.listingType !== 'all' ? filters.listingType : undefined,
+        // wanted 物品按社区名称匹配，不依赖 GPS 距离过滤
+        community: filters.listingType === 'wanted' ? selectedCommunity : undefined,
         ...params,
       });
       console.log('[AppContext] refreshItems done, got', result.data.length, 'items, filters.listingType=', filters.listingType, 'first item:', result.data[0]?.listing_type);
