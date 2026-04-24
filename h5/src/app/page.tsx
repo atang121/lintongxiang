@@ -21,9 +21,11 @@ export default function HomePage() {
   } = useApp();
   const router = useRouter();
   const [showWelcome, setShowWelcome] = useState(false);
-  const items = getFilteredItems().filter((item) => item.status !== 'completed' && item.status !== 'deleted');
+  const allFiltered = getFilteredItems();
+  const items = allFiltered.filter((item) => item.status !== 'completed' && item.status !== 'deleted');
   const unreadNotifs = notifications.filter((notification) => !notification.read);
   const activeCommunity = selectedCommunity || '';
+  console.log('[Home] render, items.length=', items.length, 'allFiltered.length=', allFiltered.length, 'filters.listingType=', filters.listingType);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !currentUser) {
