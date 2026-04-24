@@ -249,6 +249,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         category: filters.category !== 'all' ? filters.category : undefined,
         age_range: filters.ageRange !== 'all' ? filters.ageRange : undefined,
         exchange_mode: filters.exchangeMode !== 'all' ? filters.exchangeMode : undefined,
+        listing_type: filters.listingType !== 'all' ? filters.listingType : undefined,
         ...params,
       });
       setItems(result.data.map(normalizeItem));

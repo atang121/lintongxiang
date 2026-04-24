@@ -237,20 +237,20 @@ export async function createFeedbackRecordInFeishu(payload: {
   contact?: string;
   userEmail?: string;
   userId?: string;
+  userNickname?: string;
 }) {
   if (!isFeishuBaseConfigured() || !process.env.FEISHU_FEEDBACK_TABLE_ID) {
     return false;
   }
 
   const fields: Record<string, unknown> = {
-    feedback_id: payload.feedbackId,
-    反馈类型: payload.type,
+    user_id: payload.userId || '',
+    类型: payload.type,
     内容: payload.content,
     联系方式: payload.contact || '',
-    用户邮箱: payload.userEmail || '',
-    用户ID: payload.userId || '',
+    昵称: payload.userEmail || '',
     状态: '待处理',
-    提交时间: Date.now(),
+    提交时间: new Date().toISOString(),
   };
 
   try {

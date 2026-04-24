@@ -55,6 +55,7 @@ feedbackRouter.post('/', async (req, res) => {
       contact: trimmedContact,
       userEmail: user?.email ? String(user.email) : undefined,
       userId: user?.id ? String(user.id) : undefined,
+      userNickname: user?.nickname ? String(user.nickname) : undefined,
     });
     if (bitableOk) providers.push('feishu_bitable');
   } catch (error) {

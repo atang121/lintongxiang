@@ -19,7 +19,7 @@ function getDistance(lat1: number, lng1: number, lat2: number, lng2: number): nu
 
 // GET /api/items
 itemsRouter.get('/', (req, res) => {
-  const { category, age_range, exchange_mode, lat, lng, radius = 5, status } = req.query;
+  const { category, age_range, exchange_mode, lat, lng, radius = 5, status, listing_type } = req.query;
 
   let sql = `SELECT i.*, u.nickname as owner_name, u.avatar as owner_avatar, u.community as owner_community, u.credit_score as owner_credit, u.badge as owner_badges
     FROM items i JOIN users u ON i.user_id = u.id WHERE 1 = 1`;
@@ -29,6 +29,7 @@ itemsRouter.get('/', (req, res) => {
   if (category) { sql += ' AND i.category = ?'; params.push(category); }
   if (age_range) { sql += ' AND i.age_range = ?'; params.push(age_range); }
   if (exchange_mode) { sql += ' AND i.exchange_mode = ?'; params.push(exchange_mode); }
+  if (listing_type) { sql += ' AND i.listing_type = ?'; params.push(listing_type); }
   sql += ' ORDER BY i.created_at DESC LIMIT 120';
 
   let items: Array<Record<string, any>> = query(sql, params).map((row) => {

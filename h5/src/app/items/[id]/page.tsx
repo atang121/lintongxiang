@@ -441,14 +441,18 @@ export default function ItemDetailPage() {
       {/* 底部操作栏 - 始终在 grid 外部，保证 fixed 定位不受嵌套影响 */}
       {!isKeyboardOpen && (
       <div
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#e8dcc8] bg-[rgba(255,255,255,0.96)] px-4 py-3 backdrop-blur-xl xl:hidden"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#e8dcc8] bg-[rgba(255,255,255,0.97)] px-4 py-3 backdrop-blur-xl"
         style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
       >
         <div className="mx-auto flex max-w-2xl gap-3">
-          <button className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#e8dcc8] text-[#607168] transition-colors active:bg-[#f8f2e7]">
+          <button
+            onPointerDown={() => {}}
+            className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#e8dcc8] text-[#607168] transition-colors active:bg-[#f8f2e7]"
+          >
             <Heart size={20} />
           </button>
           <button
+            onPointerDown={() => {}}
             onClick={handleShare}
             className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#e8dcc8] text-[#607168] transition-colors active:bg-[#f8f2e7]"
           >
