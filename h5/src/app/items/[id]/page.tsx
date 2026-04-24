@@ -286,14 +286,29 @@ export default function ItemDetailPage() {
           >
             <ChevronLeft size={20} />
           </button>
-          <div className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ${mode.bg}`}>
-            {mode.icon} {mode.text}
+          <div className="flex items-center gap-2">
+            <div className={`rounded-full px-3.5 py-1.5 text-xs font-semibold ${mode.bg}`}>
+              {mode.icon} {mode.text}
+            </div>
+            <button
+              onPointerDown={() => {}}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e8dcc8] bg-white text-[#607168] shadow-[0_10px_22px_rgba(176,157,135,0.08)] active:bg-[#f8f2e7]"
+            >
+              <Heart size={18} />
+            </button>
+            <button
+              onPointerDown={() => {}}
+              onClick={handleShare}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e8dcc8] bg-white text-[#607168] shadow-[0_10px_22px_rgba(176,157,135,0.08)] active:bg-[#f8f2e7]"
+            >
+              <Share2 size={18} />
+            </button>
           </div>
         </div>
       </div>
 
       {/* 主内容区 */}
-      <div className="page-shell !pt-0 pb-24">
+      <div className="page-shell !pt-0 pb-8">
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_420px]">
           <section className="space-y-4 xl:sticky xl:top-24 xl:self-start">
             <div className="overflow-hidden rounded-[34px] border border-[rgba(201,189,171,0.42)] bg-[#f7efe4] shadow-[0_22px_60px_rgba(176,157,135,0.12)]">
@@ -410,20 +425,11 @@ export default function ItemDetailPage() {
               )}
             </div>
 
-            <div className="paper-surface hidden rounded-[34px] p-5 xl:block">
-              <div className="flex items-center gap-3">
-                <button className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#e8dcc8] text-[#607168] transition-colors hover:bg-[#f8f2e7]">
-                  <Heart size={20} />
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#e8dcc8] text-[#607168] transition-colors hover:bg-[#f8f2e7]"
-                >
-                  <Share2 size={20} />
-                </button>
-                <div className="flex-1">{bottomAction()}</div>
-              </div>
-            </div>
+            {/* 桌面端操作栏 - xl 以上显示 */}
+            <div className="hidden xl:block">{bottomAction()}</div>
+
+            {/* 移动端操作栏 - 始终显示，放在卖家卡片下方 */}
+            <div className="xl:hidden">{bottomAction()}</div>
 
             <div className="rounded-[28px] border border-[#d9e6dd] bg-gradient-to-r from-[#eef7f0] to-[#f8f0df] px-5 py-4">
               <p className="text-xs leading-relaxed text-[#5a7a68]">
@@ -435,29 +441,6 @@ export default function ItemDetailPage() {
               发布于 {formatDate(item.createdAt)}
             </p>
           </section>
-        </div>
-      </div>
-
-      {/* 底部操作栏 - 始终在 grid 外部，保证 fixed 定位不受嵌套影响 */}
-      <div
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#e8dcc8] bg-[rgba(255,255,255,0.97)] px-4 py-3 backdrop-blur-xl"
-        style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
-      >
-        <div className="mx-auto flex max-w-2xl gap-3">
-          <button
-            onPointerDown={() => {}}
-            className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#e8dcc8] text-[#607168] transition-colors active:bg-[#f8f2e7]"
-          >
-            <Heart size={20} />
-          </button>
-          <button
-            onPointerDown={() => {}}
-            onClick={handleShare}
-            className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#e8dcc8] text-[#607168] transition-colors active:bg-[#f8f2e7]"
-          >
-            <Share2 size={20} />
-          </button>
-          {bottomAction()}
         </div>
       </div>
 
