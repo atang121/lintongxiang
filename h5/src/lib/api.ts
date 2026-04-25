@@ -93,6 +93,10 @@ export const api = {
       }),
     delete: (id: string) =>
       fetchApi<{ data: string }>(`/items/${id}`, { method: 'DELETE' }),
+    toggleLike: (id: string) =>
+      fetchApi<{ data: { liked: boolean; favoriteCount: number } }>(`/items/${id}/like`, { method: 'POST' }),
+    getLikeStatus: (id: string) =>
+      fetchApi<{ data: { liked: boolean; favoriteCount: number } }>(`/items/${id}/like`),
   },
   users: {
     getById: (id: string) => fetchApi<{ data: any }>(`/users/${id}`),

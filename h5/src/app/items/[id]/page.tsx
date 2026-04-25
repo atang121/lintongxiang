@@ -7,6 +7,7 @@ import { ChevronLeft, Eye, Heart, MapPin, Share2 } from 'lucide-react';
 
 import { useToast } from '@/components/ui/Toast';
 import { useApp } from '@/context/AppContext';
+import { api } from '@/lib/api';
 import { isWeChatBrowser } from '@/lib/env';
 import { wechat } from '@/lib/wechat';
 import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
@@ -43,6 +44,9 @@ export default function ItemDetailPage() {
   const [msgSent, setMsgSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(item.favoriteCount || 0);
+  const [likeLoading, setLikeLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,13 +55,16 @@ export default function ItemDetailPage() {
 
     const loadData = async () => {
       setLoadingOwner(true);
-      const [user] = await Promise.all([
+      const [user, likeRes] = await Promise.all([
         getUserById(item.userId),
         refreshExchange(item.id),
+        currentUser ? api.items.getLikeStatus(item.id).catch(() => ({ data: { liked: false, favoriteCount: item.favoriteCount || 0 } })) : Promise.resolve({ data: { liked: false, favoriteCount: item.favoriteCount || 0 } }),
       ]);
 
       if (!cancelled) {
         setOwner(user ?? null);
+        setLiked(likeRes?.data?.liked ?? false);
+        setLikeCount(likeRes?.data?.favoriteCount ?? item.favoriteCount ?? 0);
         setLoadingOwner(false);
       }
     };
@@ -67,7 +74,7 @@ export default function ItemDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [item, getUserById, refreshExchange]);
+  }, [item, getUserById, refreshExchange, currentUser]);
 
   if (loading || !item || loadingOwner) {
     return (
@@ -188,7 +195,7 @@ export default function ItemDetailPage() {
     return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
-  /** 底部主操作按钮 */
+  /** 底部主操作按钮 - 简化版，主要给物品主人用 */
   const bottomAction = () => {
     // 已完成
     if (item.status === 'completed') {
@@ -199,7 +206,7 @@ export default function ItemDetailPage() {
       );
     }
 
-    // 自己的物品
+    // 自己的物品 - 保留完整操作
     if (isMyItem) {
       if (item.status === 'pending' && exchange?.status === 'pending') {
         return (
@@ -222,33 +229,8 @@ export default function ItemDetailPage() {
       );
     }
 
-    // 未登录 → 弹出登录提示
-    if (!currentUser) {
-      return (
-        <button
-          onClick={() => router.push('/login')}
-          onPointerDown={() => {}}
-          className="flex-1 rounded-2xl bg-[#1f3a30] py-3 text-sm font-bold text-white active:bg-[#173026]"
-        >
-          🔑 登录后联系物主
-        </button>
-      );
-    }
-
-    // 可联系
-    const btnLabel = item.status === 'pending' && !isReservedByCurrentUser
-      ? '💬 留言排队'
-      : '💬 联系并预约';
-
-    return (
-      <button
-        onClick={() => setShowContact(true)}
-        onPointerDown={() => {}}
-        className="flex-1 rounded-2xl bg-[#1f3a30] py-3 text-sm font-bold text-white active:bg-[#173026]"
-      >
-        {btnLabel}
-      </button>
-    );
+    // 其他用户：卡片内已有联系按钮，底部无需重复显示
+    return null;
   };
 
   const handleShare = () => {
@@ -256,6 +238,7 @@ export default function ItemDetailPage() {
     const title = item.title;
     const modeLabel = EXCHANGE_MODE_LABELS[item.exchangeMode];
 
+    // 微信浏览器内使用微信SDK
     if (isWeChatBrowser) {
       wechat.showShareMenu({
         title: `${title} — 邻里童享`,
@@ -263,15 +246,32 @@ export default function ItemDetailPage() {
         link: shareUrl,
         imgUrl: item.images[0] || `${window.location.origin}/og-image.svg`,
       });
-    } else if (navigator.share) {
-      void navigator.share({
-        title: `${title} - 邻里童享`,
-        text: `${item.location.community} · ${modeLabel} · ${item.condition}`,
-        url: shareUrl,
-      }).catch(() => undefined);
-    } else if (navigator.clipboard) {
+      return;
+    }
+
+    // 统一使用剪贴板复制（手机电脑体验一致）
+    if (navigator.clipboard) {
       void navigator.clipboard.writeText(shareUrl);
       show('链接已复制，可粘贴分享给朋友', 'info');
+    }
+  };
+
+  const handleLike = async () => {
+    if (!currentUser) {
+      router.push('/login');
+      return;
+    }
+    if (likeLoading) return;
+
+    setLikeLoading(true);
+    try {
+      const res = await api.items.toggleLike(item.id);
+      setLiked(res.data.liked);
+      setLikeCount(res.data.favoriteCount);
+    } catch {
+      show('操作失败，请稍后重试', 'error');
+    } finally {
+      setLikeLoading(false);
     }
   };
 
@@ -291,10 +291,15 @@ export default function ItemDetailPage() {
               {mode.icon} {mode.text}
             </div>
             <button
-              onPointerDown={() => {}}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e8dcc8] bg-white text-[#607168] shadow-[0_10px_22px_rgba(176,157,135,0.08)] active:bg-[#f8f2e7]"
+              onClick={handleLike}
+              className={`flex h-10 items-center gap-1.5 rounded-full border px-3 shadow-[0_10px_22px_rgba(176,157,135,0.08)] active:opacity-90 ${
+                liked
+                  ? 'border-[#f4a0a0] bg-red-50 text-red-500'
+                  : 'border-[#e8dcc8] bg-white text-[#607168]'
+              }`}
             >
-              <Heart size={18} />
+              <Heart size={16} fill={liked ? 'currentColor' : 'none'} />
+              <span className="text-xs font-medium">{likeCount}</span>
             </button>
             <button
               onPointerDown={() => {}}
@@ -378,6 +383,7 @@ export default function ItemDetailPage() {
               )}
             </div>
 
+            {/* 卖家信息卡片 */}
             <div className="paper-surface rounded-[34px] p-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -423,10 +429,33 @@ export default function ItemDetailPage() {
                   ))}
                 </div>
               )}
-            </div>
 
-            {/* 桌面端操作栏 - xl 以上显示 */}
-            <div className="hidden xl:block">{bottomAction()}</div>
+              {/* 联系按钮 - 移到卡片内更醒目 */}
+              {!isMyItem && item.status !== 'completed' && (
+                <div className="mt-4 border-t border-[#f1e8db] pt-4">
+                  {currentUser ? (
+                    <button
+                      onClick={() => setShowContact(true)}
+                      className="w-full rounded-2xl bg-gradient-to-r from-[#1f3a30] to-[#2d5a47] py-3.5 text-sm font-bold text-white shadow-lg active:opacity-90"
+                    >
+                      💬 联系 {owner.nickname}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => router.push('/login')}
+                      className="w-full rounded-2xl bg-gradient-to-r from-[#1f3a30] to-[#2d5a47] py-3.5 text-sm font-bold text-white shadow-lg active:opacity-90"
+                    >
+                      🔑 登录后联系
+                    </button>
+                  )}
+                </div>
+              )}
+              {isMyItem && item.status === 'available' && (
+                <div className="mt-4 border-t border-[#f1e8db] pt-4">
+                  <p className="text-center text-xs text-[#8c7d63]">这是你的物品</p>
+                </div>
+              )}
+            </div>
 
             {/* 移动端操作栏 - 始终显示，放在卖家卡片下方 */}
             <div className="xl:hidden">{bottomAction()}</div>

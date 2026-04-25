@@ -19,7 +19,7 @@ function getDistance(lat1: number, lng1: number, lat2: number, lng2: number): nu
 
 // GET /api/items
 itemsRouter.get('/', (req, res) => {
-  const { category, age_range, exchange_mode, lat, lng, radius = 5, status, listing_type } = req.query;
+  const { category, age_range, exchange_mode, lat, lng, radius = 5, status, listing_type, community } = req.query;
 
   let sql = `SELECT i.*, u.nickname as owner_name, u.avatar as owner_avatar, u.community as owner_community, u.credit_score as owner_credit, u.badge as owner_badges
     FROM items i JOIN users u ON i.user_id = u.id WHERE 1 = 1`;
@@ -30,6 +30,8 @@ itemsRouter.get('/', (req, res) => {
   if (age_range) { sql += ' AND i.age_range = ?'; params.push(age_range); }
   if (exchange_mode) { sql += ' AND i.exchange_mode = ?'; params.push(exchange_mode); }
   if (listing_type) { sql += ' AND i.listing_type = ?'; params.push(listing_type); }
+  // wanted 物品按社区名称匹配（不过滤距离，因为 wanted 物品的 GPS 坐标通常不准确）
+  if (listing_type === 'wanted' && community) { sql += ' AND LOWER(i.community) = LOWER(?)'; params.push(String(community)); }
   sql += ' ORDER BY i.created_at DESC LIMIT 120';
 
   let items: Array<Record<string, any>> = query(sql, params).map((row) => {
@@ -42,7 +44,9 @@ itemsRouter.get('/', (req, res) => {
     };
   });
 
-  if (lat && lng) {
+  // wanted 物品（listing_type=wanted）按社区名称在 SQL 层过滤，不做距离过滤（GPS 坐标通常不准确）
+  // offer 物品保持距离过滤
+  if (lat && lng && listing_type !== 'wanted') {
     const userLat = parseFloat(lat as string);
     const userLng = parseFloat(lng as string);
     const radiusKm = parseFloat(radius as string);
@@ -52,13 +56,10 @@ itemsRouter.get('/', (req, res) => {
         distance: getDistance(userLat, userLng, Number(item.lat), Number(item.lng)),
       }))
       .filter((item: any) => {
-        // lat/lng 为 null 时 getDistance 返回 999，代表位置未知
-        // 未知位置的物品（通常是需求/想要）按社区匹配兜底保留
         if (!item.lat || !item.lng) return true;
         return item.distance <= radiusKm;
       })
       .sort((a: any, b: any) => {
-        // 有坐标的排前面，无坐标（需求）排后面
         if (a.lat && a.lng && (!b.lat || !b.lng)) return -1;
         if ((!a.lat || !a.lng) && b.lat && b.lng) return 1;
         return (a.distance || 999) - (b.distance || 999);
@@ -82,6 +83,59 @@ itemsRouter.get('/:id', (req, res) => {
       ...typedRow,
       images: resolveAssetUrls(JSON.parse(String(typedRow.images || '[]'))),
       tags: JSON.parse(String(typedRow.tags || '[]')),
+    },
+  });
+});
+
+// POST /api/items/:id/like — 点赞/取消点赞
+itemsRouter.post('/:id/like', (req, res) => {
+  const authUserId = getAuthUserId(req.headers.authorization);
+  if (!authUserId) {
+    return res.status(401).json({ error: '请先登录' });
+  }
+
+  const itemId = req.params.id;
+  const item = getOne('SELECT * FROM items WHERE id = ?', [itemId]);
+  if (!item) {
+    return res.status(404).json({ error: '物品不存在' });
+  }
+
+  // 检查是否已点赞
+  const existing = getOne('SELECT id FROM favorites WHERE user_id = ? AND item_id = ?', [authUserId, itemId]);
+
+  let liked: boolean;
+  if (existing) {
+    // 取消点赞
+    run('DELETE FROM favorites WHERE user_id = ? AND item_id = ?', [authUserId, itemId]);
+    run('UPDATE items SET favorite_count = MAX(0, favorite_count - 1) WHERE id = ?', [itemId]);
+    liked = false;
+  } else {
+    // 点赞
+    const favId = 'fav_' + uuid().slice(0, 8);
+    run('INSERT OR IGNORE INTO favorites (id, user_id, item_id) VALUES (?, ?, ?)', [favId, authUserId, itemId]);
+    run('UPDATE items SET favorite_count = favorite_count + 1 WHERE id = ?', [itemId]);
+    liked = true;
+  }
+
+  const updated = getOne('SELECT favorite_count FROM items WHERE id = ?', [itemId]) as { favorite_count: number } | null;
+  res.json({ data: { liked, favoriteCount: updated?.favorite_count ?? 0 } });
+});
+
+// GET /api/items/:id/like — 获取当前用户是否已点赞
+itemsRouter.get('/:id/like', (req, res) => {
+  const authUserId = getAuthUserId(req.headers.authorization);
+  if (!authUserId) {
+    return res.json({ data: { liked: false, favoriteCount: 0 } });
+  }
+
+  const itemId = req.params.id;
+  const existing = getOne('SELECT id FROM favorites WHERE user_id = ? AND item_id = ?', [authUserId, itemId]);
+  const item = getOne('SELECT favorite_count FROM items WHERE id = ?', [itemId]) as { favorite_count: number } | null;
+
+  res.json({
+    data: {
+      liked: !!existing,
+      favoriteCount: item?.favorite_count ?? 0,
     },
   });
 });
