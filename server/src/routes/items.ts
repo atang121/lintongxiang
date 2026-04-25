@@ -30,8 +30,13 @@ itemsRouter.get('/', (req, res) => {
   if (age_range) { sql += ' AND i.age_range = ?'; params.push(age_range); }
   if (exchange_mode) { sql += ' AND i.exchange_mode = ?'; params.push(exchange_mode); }
   if (listing_type) { sql += ' AND i.listing_type = ?'; params.push(listing_type); }
-  // wanted 物品按社区名称匹配（不过滤距离，因为 wanted 物品的 GPS 坐标通常不准确）
-  if (listing_type === 'wanted' && community) { sql += ' AND LOWER(i.community) = LOWER(?)'; params.push(String(community)); }
+
+  // 小区名模糊匹配（容忍微小差异，如"民发盛特区"vs"民发盛特区(东津新区)"）
+  if (community) {
+    sql += ' AND LOWER(i.community) LIKE LOWER(?)';
+    params.push(`%${String(community)}%`);
+  }
+
   sql += ' ORDER BY i.created_at DESC LIMIT 120';
 
   let items: Array<Record<string, any>> = query(sql, params).map((row) => {
@@ -44,12 +49,14 @@ itemsRouter.get('/', (req, res) => {
     };
   });
 
-  // wanted 物品（listing_type=wanted）按社区名称在 SQL 层过滤，不做距离过滤（GPS 坐标通常不准确）
-  // offer 物品保持距离过滤
-  if (lat && lng && listing_type !== 'wanted') {
+  // offer 和 wanted 统一距离过滤（默认 5km，避免位置不精确时误差太大）
+  // wanted 物品也参与距离过滤，不再仅靠社区名称匹配
+  if (lat && lng) {
     const userLat = parseFloat(lat as string);
     const userLng = parseFloat(lng as string);
-    const radiusKm = parseFloat(radius as string);
+    // 后端固定用 5km 兜底，前端页面显示 3km/5km/10km 由用户选择
+    const radiusKm = parseFloat(radius as string) || 5;
+    const effectiveRadius = Math.max(radiusKm, 5);
     items = items
       .map((item) => ({
         ...(item as Record<string, any>),
@@ -57,7 +64,7 @@ itemsRouter.get('/', (req, res) => {
       }))
       .filter((item: any) => {
         if (!item.lat || !item.lng) return true;
-        return item.distance <= radiusKm;
+        return item.distance <= effectiveRadius;
       })
       .sort((a: any, b: any) => {
         if (a.lat && a.lng && (!b.lat || !b.lng)) return -1;

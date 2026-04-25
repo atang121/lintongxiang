@@ -414,13 +414,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       tags: itemData.tags,
       community: itemData.location?.community ?? itemData.community ?? currentUser.community,
       district: itemData.location?.district ?? itemData.district ?? currentUser.district ?? '',
-      lat: itemData.location?.lat ?? itemData.lat ?? userLocation?.lat,
-      lng: itemData.location?.lng ?? itemData.lng ?? userLocation?.lng,
+      lat: itemData.location?.lat ?? itemData.lat,
+      lng: itemData.location?.lng ?? itemData.lng,
     });
 
     await refreshItems();
     return normalizeItem(result.data);
-  }, [currentUser, refreshItems, userLocation]);
+  }, [currentUser, refreshItems]);
 
   const addMessage = useCallback(async (msg: Omit<Message, 'id' | 'createdAt'>) => {
     if (!currentUser) throw new Error('请先登录');

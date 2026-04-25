@@ -38,6 +38,7 @@ export interface Item {
   status: ItemStatus;
   createdAt: string;
   views: number;
+  favoriteCount?: number;
   tags?: string[];
   ownerName?: string;
   ownerAvatar?: string;

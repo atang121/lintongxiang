@@ -1,13 +1,16 @@
 'use client';
 
-import { ChangeEvent, useRef, useState } from 'react';
+import { ChangeEvent, useRef, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Camera, ChevronLeft, X } from 'lucide-react';
+import { Camera, ChevronLeft, MapPin, X } from 'lucide-react';
 
 import { useToast } from '@/components/ui/Toast';
 import { useApp } from '@/context/AppContext';
 import { api } from '@/lib/api';
+import { compressImage } from '@/lib/imageCompress';
 import { useKeyboardHeight } from '@/hooks/useKeyboardHeight';
+import { locationService, XIANGYANG_CENTER } from '@/lib/tencentMap';
+import { CommunityPicker } from '@/components/CommunityPicker';
 import {
   AGE_LABELS,
   AgeRange,
@@ -19,19 +22,11 @@ import {
   ListingType,
 } from '@/types';
 
-function readFileAsDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = () => reject(new Error('图片读取失败'));
-    reader.readAsDataURL(file);
-  });
-}
-
 type UploadImageState = {
   id: string;
   fileName: string;
-  previewUrl: string;
+  previewUrl: string; // 压缩后的预览图（用于显示）
+  compressedSize?: number; // 压缩后的大小（用于显示）
   uploadedUrl: string;
   uploading: boolean;
   error?: string;
@@ -41,7 +36,7 @@ const EXCHANGE_MODE_OPTIONS: ExchangeMode[] = ['gift', 'swap', 'sell'];
 
 export function PublishClient() {
   const router = useRouter();
-  const { addItem, currentUser, opsConfig, opsSource, userLocation } = useApp();
+  const { addItem, currentUser, opsConfig, opsSource, communityOptions } = useApp();
   const { show } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { keyboardHeight, isKeyboardOpen } = useKeyboardHeight();
@@ -62,6 +57,57 @@ export function PublishClient() {
   const [tagInput, setTagInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // 发布位置状态：统一使用社区数据库标准坐标
+  const [publishLocation, setPublishLocation] = useState<{
+    community: string;
+    district: string;
+    lat: number;
+    lng: number;
+    isCustom: boolean;
+  }>(() => {
+    const name = currentUser?.community || '';
+    const match = communityOptions.find((c) => c.name === name);
+    return {
+      community: name,
+      district: currentUser?.district || '',
+      lat: match?.lat ?? XIANGYANG_CENTER.lat,
+      lng: match?.lng ?? XIANGYANG_CENTER.lng,
+      isCustom: false,
+    };
+  });
+
+  // 是否展开小区选择器
+  const [showCommunityPicker, setShowCommunityPicker] = useState(false);
+
+  // GPS 检测到的小区名（用于提示，不直接用于提交）
+  const [detectedCommunity, setDetectedCommunity] = useState<string | null>(null);
+
+  // 挂载时用 GPS + 逆地址解析检测当前位置
+  useEffect(() => {
+    if (!currentUser) return;
+    let cancelled = false;
+    locationService.getCurrentPosition().then((result) => {
+      if (cancelled) return;
+      if (result.community && result.community !== currentUser.community) {
+        setDetectedCommunity(result.community);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [currentUser]);
+
+  // 处理小区选择
+  const handleCommunityChange = (selection: { community: string; district: string; isCustom: boolean }) => {
+    const match = communityOptions.find((c) => c.name === selection.community);
+    setPublishLocation({
+      community: selection.community,
+      district: selection.district,
+      lat: match?.lat ?? XIANGYANG_CENTER.lat,
+      lng: match?.lng ?? XIANGYANG_CENTER.lng,
+      isCustom: selection.isCustom,
+    });
+    setShowCommunityPicker(false);
+  };
 
   const conditions = ['全新', '几乎全新', '轻微使用', '正常使用'];
   const categories = Object.entries(CATEGORY_LABELS) as [ItemCategory, string][];
@@ -86,75 +132,157 @@ export function PublishClient() {
     fileInputRef.current?.click();
   };
 
+  /**
+   * 上传单张图片（带自动重试）
+   */
+  const uploadSingleImage = async (item: UploadImageState, maxRetries = 2): Promise<string> => {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await api.uploads.uploadImage({
+          data_url: item.previewUrl,
+          file_name: item.fileName,
+          category: 'items',
+        });
+        return result.data.url;
+      } catch (error: any) {
+        const isLastAttempt = attempt === maxRetries;
+        const msg = error?.message || '';
+
+        // 如果是最后一次尝试或者是非网络错误，不再重试
+        if (isLastAttempt || (!msg.includes('fetch') && !msg.includes('network') && !msg.includes('timeout'))) {
+          throw error;
+        }
+
+        // 网络错误，等待一下再重试
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+      }
+    }
+    throw new Error('上传失败');
+  };
+
   const handleFilesSelected = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
 
-    const maxMb = opsConfig.image_upload_max_mb || 8;
-    const maxBytes = maxMb * 1024 * 1024;
+    const remaining = opsConfig.image_upload_max_count - images.length;
+    const picked = files.slice(0, remaining).filter((file) => file.type.startsWith('image/'));
 
-    // 先做大小预检，给出友好提示
-    const oversized = files.filter((f) => f.size > maxBytes);
-    if (oversized.length > 0) {
-      show(`有图片超过 ${maxMb}MB，请先压缩后再上传（可用微信压缩：选中图片 → 发送图片 → 勾选"原图"以外的选项）`, 'error');
+    if (picked.length === 0) {
       event.target.value = '';
       return;
     }
 
-    const remaining = opsConfig.image_upload_max_count - images.length;
-    const picked = files.slice(0, remaining);
-
     try {
-      const prepared = await Promise.all(
-        picked
-          .filter((file) => file.type.startsWith('image/'))
-          .map(async (file) => ({
-            id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      // 第一步：客户端压缩所有图片（快速完成，用户看到预览）
+      const prepared: UploadImageState[] = [];
+      for (const file of picked) {
+        const id = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+        try {
+          // 压缩图片（最大宽度 1200px，质量 85%）
+          const compressed = await compressImage(file, 1200, 0.85);
+
+          prepared.push({
+            id,
             fileName: file.name,
-            previewUrl: await readFileAsDataUrl(file),
+            previewUrl: compressed.dataUrl,
+            compressedSize: compressed.size,
             uploadedUrl: '',
             uploading: true,
-          }))
-      );
+          });
+        } catch {
+          // 压缩失败时，使用原始文件（作为降级方案）
+          const reader = new FileReader();
+          const dataUrl = await new Promise<string>((resolve, reject) => {
+            reader.onload = () => resolve(String(reader.result || ''));
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          prepared.push({
+            id,
+            fileName: file.name,
+            previewUrl: dataUrl,
+            uploadedUrl: '',
+            uploading: true,
+          });
+        }
+      }
+
       setImages((prev) => [...prev, ...prepared]);
 
-      await Promise.all(
-        prepared.map(async (item) => {
-          try {
-            const result = await api.uploads.uploadImage({
-              data_url: item.previewUrl,
-              file_name: item.fileName,
-              category: 'items',
-            });
-            setImages((prev) =>
-              prev.map((entry) =>
-                entry.id === item.id
-                  ? { ...entry, uploadedUrl: result.data.url, uploading: false }
-                  : entry
-              )
-            );
-          } catch (error: any) {
-            const msg = error?.message || '';
-            const isSizeError = msg.includes('413') || msg.includes('payload') || msg.includes('body');
-            setImages((prev) =>
-              prev.map((entry) =>
-                entry.id === item.id
-                  ? { ...entry, uploading: false, error: isSizeError ? `图片过大（建议${opsConfig.image_upload_max_mb}MB以内）` : '上传失败' }
-                  : entry
-              )
-            );
-            if (isSizeError) {
-              show(`图片过大，请压缩后再上传（手机拍照建议用微信压缩：发送图片时取消勾选"原图"）`, 'error');
-            } else {
-              show('有图片上传失败了，请删除后重新上传', 'error');
-            }
-          }
-        })
-      );
+      // 第二步：顺序上传（避免并发过多导致失败）
+      let hasError = false;
+      for (const item of prepared) {
+        try {
+          const url = await uploadSingleImage(item);
+          setImages((prev) =>
+            prev.map((entry) =>
+              entry.id === item.id
+                ? { ...entry, uploadedUrl: url, uploading: false }
+                : entry
+            )
+          );
+        } catch (error: any) {
+          hasError = true;
+          const msg = error?.message || '';
+          const isSizeError = msg.includes('413') || msg.includes('payload') || msg.includes('body') || msg.includes('过大');
+
+          setImages((prev) =>
+            prev.map((entry) =>
+              entry.id === item.id
+                ? {
+                    ...entry,
+                    uploading: false,
+                    error: isSizeError
+                      ? `图片过大（已自动压缩，如仍失败请用微信压缩）`
+                      : '上传失败，点击重试',
+                  }
+                : entry
+            )
+          );
+        }
+      }
+
+      if (hasError) {
+        show('部分图片上传失败，可删除后重试', 'error');
+      }
     } catch {
-      show('图片读取失败，请换一张再试', 'error');
+      show('图片处理失败，请换一张再试', 'error');
     } finally {
       event.target.value = '';
+    }
+  };
+
+  /**
+   * 删除图片，或点击失败图片时重试
+   */
+  const handleImageClick = async (item: UploadImageState) => {
+    if (item.error && !item.uploading) {
+      // 点击失败图片 → 重试上传
+      setImages((prev) =>
+        prev.map((entry) =>
+          entry.id === item.id
+            ? { ...entry, uploading: true, error: undefined }
+            : entry
+        )
+      );
+      try {
+        const url = await uploadSingleImage(item);
+        setImages((prev) =>
+          prev.map((entry) =>
+            entry.id === item.id
+              ? { ...entry, uploadedUrl: url, uploading: false }
+              : entry
+          )
+        );
+      } catch (error: any) {
+        setImages((prev) =>
+          prev.map((entry) =>
+            entry.id === item.id
+              ? { ...entry, uploading: false, error: '上传失败，点击重试' }
+              : entry
+          )
+        );
+      }
     }
   };
 
@@ -220,10 +348,10 @@ export function PublishClient() {
         price: exchangeMode === 'sell' ? Number(price) : undefined,
         condition: condition as '全新' | '几乎全新' | '轻微使用' | '正常使用',
         location: {
-          community: currentUser.community,
-          district: currentUser.district || '',
-          lat: userLocation?.lat ?? currentUser.lat ?? 32.0042,
-          lng: userLocation?.lng ?? currentUser.lng ?? 112.1227,
+          community: publishLocation.community,
+          district: publishLocation.district,
+          lat: publishLocation.lat,
+          lng: publishLocation.lng,
         },
         tags,
       });
@@ -266,10 +394,10 @@ export function PublishClient() {
           </button>
           <div className="flex-1">
             <h1 className="story-title text-[22px] text-[#4a5660]">发布信息</h1>
-            {currentUser?.community && (
+            {publishLocation.community && (
               <div className="mt-0.5 text-[11px] text-[#8a7d68]">
-                发布至：{currentUser.district ? `${currentUser.district} · ` : ''}
-                {currentUser.community}
+                发布至：{publishLocation.district ? `${publishLocation.district} · ` : ''}
+                {publishLocation.community}
               </div>
             )}
           </div>
@@ -328,6 +456,56 @@ export function PublishClient() {
           </div>
         </div>
 
+        {/* 位置确认区段 */}
+        <div className={`rounded-[28px] border p-4 shadow-[0_18px_50px_rgba(55,88,71,0.08)] transition-colors ${
+          showCommunityPicker
+            ? 'border-[#a8c3b1] bg-[#f0f7f2]'
+            : 'border-[#eadfca] bg-white/92'
+        }`}>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-sm font-semibold text-[#415449]">📍 物品位置</p>
+            <button
+              onClick={() => setShowCommunityPicker(!showCommunityPicker)}
+              className="flex items-center gap-1 text-xs text-[#7a9b86] hover:text-[#5f806f]"
+            >
+              <MapPin size={13} />
+              {publishLocation.community ? '切换小区' : '选择小区'}
+            </button>
+          </div>
+
+          {!showCommunityPicker ? (
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                {publishLocation.community ? (
+                  <div>
+                    <div className="text-sm font-medium text-[#1c2d24]">
+                      {publishLocation.community}
+                    </div>
+                    {detectedCommunity && detectedCommunity !== publishLocation.community && (
+                      <div className="mt-1 text-xs text-[#8a938d]">
+                        GPS 检测到附近有「{detectedCommunity}」，如不在此小区可切换
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-sm text-[#8a938d]">
+                    点击"选择小区"指定物品所在位置
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <CommunityPicker
+                value={publishLocation.community}
+                districtValue={publishLocation.district}
+                onChange={handleCommunityChange}
+                communityOptions={communityOptions}
+              />
+            </div>
+          )}
+        </div>
+
         <div className="paper-surface rounded-[30px] p-4 shadow-[0_18px_50px_rgba(176,157,135,0.08)]">
           <p className="mb-3 text-sm font-semibold text-[#66737d]">
             📸 {isWanted ? '参考图片（选填）' : `添加图片（最多 ${opsConfig.image_upload_max_count} 张）`}
@@ -343,7 +521,13 @@ export function PublishClient() {
           <div className="grid grid-cols-3 gap-2.5 lg:grid-cols-4">
             {images.map((img, index) => (
               <div key={img.id} className="relative aspect-square overflow-hidden rounded-xl">
-                <img src={img.previewUrl} alt="" className="h-full w-full object-cover" />
+                {/* 点击失败图片重试 */}
+                <div
+                  onClick={() => void handleImageClick(img)}
+                  className={`h-full w-full ${img.error ? 'cursor-pointer' : ''}`}
+                >
+                  <img src={img.previewUrl} alt="" className="h-full w-full object-cover" />
+                </div>
                 <button
                   onClick={() => removeImage(img.id)}
                   className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/50 text-white"
@@ -351,17 +535,29 @@ export function PublishClient() {
                   <X size={12} />
                 </button>
                 {img.uploading && (
-                  <span className="absolute left-1 top-1 rounded bg-black/55 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                    图片上传中
-                  </span>
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-1.5">
+                    <div className="h-1 w-full overflow-hidden rounded-full bg-white/30">
+                      <div className="h-full w-1/3 animate-pulse rounded-full bg-white" />
+                    </div>
+                    <span className="mt-1 block text-center text-[10px] font-medium text-white">
+                      压缩上传中
+                    </span>
+                  </div>
                 )}
                 {!img.uploading && img.error && (
-                  <span className="absolute left-1 top-1 rounded bg-[#b84d32] px-1.5 py-0.5 text-[10px] font-medium text-white">
-                    上传失败
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#b84d32] to-transparent p-1.5">
+                    <span className="block text-center text-[10px] font-medium text-white">
+                      {img.error}
+                    </span>
+                  </div>
+                )}
+                {!img.uploading && !img.error && img.compressedSize && (
+                  <span className="absolute left-1 top-1 rounded bg-black/45 px-1 py-0.5 text-[9px] font-medium text-white/80">
+                    {(img.compressedSize / 1024).toFixed(0)}KB
                   </span>
                 )}
                 {index === 0 && !isWanted && (
-                  <span className="absolute bottom-1 left-1 rounded bg-[#1f3a30] px-1.5 py-0.5 text-xs font-medium text-white">
+                  <span className="absolute bottom-1 right-1 rounded bg-[#1f3a30] px-1.5 py-0.5 text-xs font-medium text-white">
                     封面
                   </span>
                 )}
