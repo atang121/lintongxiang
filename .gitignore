@@ -54,3 +54,5 @@ coverage/
 # Misc
 *.local
 .vercel
+server/.env_*.txt
+*.env.backup
