@@ -1,0 +1,368 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #f9f7f0;
+  --color-brand-100: #eef5ef;
+  --color-brand-500: #87aa95;
+  --color-brand-600: #739783;
+  --color-brand-700: #5f806f;
+  --color-brand-900: #40544b;
+  --color-brand: #87aa95;
+  --color-brand-dark: #5f806f;
+}
+
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --paper: #fffaf3;
+  --paper-deep: #f4ebdc;
+  --paper-soft: #fffdf9;
+  --forest: #87aa95;
+  --forest-soft: #a8c3b1;
+  --forest-deep: #5f806f;
+  --sun: #eadb9d;
+  --peach: #e9cab3;
+  --berry: #d9c6d6;
+  --mist: #dfeaf2;
+  --ink: #45515c;
+  --ink-soft: #6f7a84;
+  --line: rgba(191, 176, 153, 0.34);
+  --font-display: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", serif;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Noto Sans SC", sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(234, 219, 157, 0.34), transparent 24%),
+    radial-gradient(circle at 88% 12%, rgba(170, 198, 182, 0.26), transparent 26%),
+    radial-gradient(circle at 74% 82%, rgba(223, 234, 242, 0.32), transparent 20%),
+    linear-gradient(180deg, #fffdf9 0%, #fff9f0 42%, #fdf4ea 100%);
+  overscroll-behavior: none;
+  color: var(--ink);
+  scroll-behavior: smooth;
+}
+
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
+}
+
+::selection {
+  background: rgba(214, 171, 98, 0.28);
+}
+
+a,
+button {
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
+}
+
+main {
+  position: relative;
+}
+
+.page-shell {
+  width: min(100%, 1380px);
+  margin: 0 auto;
+  padding: 20px 16px 120px;
+}
+
+.paper-surface {
+  position: relative;
+  border: 1px solid var(--line);
+  background: rgba(255, 253, 249, 0.92);
+  box-shadow:
+    0 18px 44px rgba(149, 132, 109, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+}
+
+.paper-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(234, 219, 157, 0.12) 0, rgba(234, 219, 157, 0.12) 2px, transparent 2.5px),
+    radial-gradient(circle at 78% 30%, rgba(168, 195, 177, 0.1) 0, rgba(168, 195, 177, 0.1) 2px, transparent 2.5px),
+    radial-gradient(circle at 32% 78%, rgba(206, 220, 233, 0.12) 0, rgba(206, 220, 233, 0.12) 1.5px, transparent 2px);
+  background-size: 120px 120px, 140px 140px, 160px 160px;
+  opacity: 0.68;
+  pointer-events: none;
+}
+
+.paper-surface > * {
+  position: relative;
+  z-index: 1;
+}
+
+.section-label {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: rgba(94, 110, 104, 0.55);
+}
+
+.story-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.story-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.story-kicker::before,
+.story-kicker::after {
+  content: "";
+  display: block;
+  width: 18px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+.desktop-float {
+  position: relative;
+}
+
+.desktop-float::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  border-radius: 36px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.45), transparent 65%);
+  pointer-events: none;
+}
+
+.milk-panel {
+  position: relative;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.8), transparent 32%),
+    linear-gradient(145deg, rgba(255, 251, 245, 0.96), rgba(247, 250, 246, 0.96));
+  box-shadow:
+    0 20px 48px rgba(165, 143, 120, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.pastel-stage {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(208, 197, 180, 0.42);
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 238, 198, 0.46), transparent 22%),
+    radial-gradient(circle at 82% 18%, rgba(214, 236, 222, 0.44), transparent 22%),
+    radial-gradient(circle at 84% 82%, rgba(217, 231, 243, 0.48), transparent 24%),
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(255, 249, 241, 0.98));
+  box-shadow:
+    0 26px 64px rgba(166, 145, 121, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96);
+}
+
+.pastel-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      -28deg,
+      rgba(255, 255, 255, 0.18) 0 3px,
+      rgba(255, 255, 255, 0) 3px 18px
+    );
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.toy-tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 22px 48px rgba(181, 160, 137, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.toy-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent 34%);
+  pointer-events: none;
+}
+
+.soft-icon-orb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 16px 28px rgba(184, 163, 139, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.doodle-stroke {
+  stroke: rgba(223, 183, 141, 0.92);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.doodle-stroke-blue {
+  stroke: rgba(159, 186, 212, 0.9);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.doodle-stroke-green {
+  stroke: rgba(155, 187, 168, 0.92);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.pastel-chip {
+  border: 1px solid rgba(190, 178, 160, 0.28);
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(8px);
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #9cbba8 0%, #87aa95 100%);
+  color: white;
+  box-shadow: 0 12px 30px rgba(135, 170, 149, 0.24);
+}
+
+.primary-button:hover {
+  filter: brightness(1.02);
+}
+
+.secondary-button {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--ink);
+}
+
+.soft-input {
+  border: 1px solid rgba(207, 197, 182, 0.72);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.soft-input:focus {
+  outline: none;
+  border-color: rgba(135, 170, 149, 0.9);
+  box-shadow:
+    0 0 0 4px rgba(168, 195, 177, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98);
+}
+
+/* 隐藏滚动条但保留功能 */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 图片懒加载占位 */
+img {
+  background: #f0f0f0;
+}
+
+/* Toast 动画 */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fade-in-up 0.2s ease-out;
+}
+
+@keyframes float-soft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@media (min-width: 768px) {
+  .page-shell {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    padding-bottom: 0;
+  }
+
+  .page-shell {
+    padding-top: 28px;
+    padding-bottom: 64px;
+  }
+}
+
+.float-soft {
+  animation: float-soft 6s ease-in-out infinite;
+}
+
+/* 骨架屏呼吸动画优化 */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (min-width: 768px) {
+  .page-shell {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    padding-bottom: 0;
+  }
+
+  .page-shell {
+    padding-top: 28px;
+    padding-bottom: 48px;
+  }
+}

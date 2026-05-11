@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>童邻市集本机运维面板</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Local Ops Console</p>
+          <h1>童邻市集本机运维面板</h1>
+          <p class="lede">构建、PM2、备份、CSS/API 验证集中在一个页面里。</p>
+        </div>
+        <div class="hero-actions">
+          <a class="link-button" href="http://localhost:3000" target="_blank" rel="noreferrer">打开前端</a>
+          <a class="link-button secondary" href="http://localhost:3001/api/health" target="_blank" rel="noreferrer">查看 API</a>
+        </div>
+      </section>
+
+      <section class="status-grid">
+        <article class="status-panel">
+          <span class="status-dot" id="front-dot"></span>
+          <div>
+            <p class="status-label">前端 3000</p>
+            <strong id="front-text">检测中</strong>
+            <small id="front-sub">http://127.0.0.1:3000</small>
+          </div>
+        </article>
+        <article class="status-panel">
+          <span class="status-dot" id="css-dot"></span>
+          <div>
+            <p class="status-label">CSS 样式</p>
+            <strong id="css-text">检测中</strong>
+            <small id="css-sub">等待验证</small>
+          </div>
+        </article>
+        <article class="status-panel">
+          <span class="status-dot" id="api-dot"></span>
+          <div>
+            <p class="status-label">后端 3001</p>
+            <strong id="api-text">检测中</strong>
+            <small id="api-sub">http://127.0.0.1:3001/api/health</small>
+          </div>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <aside class="pm2-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Process</p>
+              <h2>PM2 状态</h2>
+            </div>
+            <button class="icon-button" data-action="refresh">刷新</button>
+          </div>
+          <div id="pm2-list" class="pm2-list">读取中...</div>
+        </aside>
+
+        <section class="actions-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Actions</p>
+              <h2>常用操作</h2>
+            </div>
+          </div>
+
+          <div class="action-group">
+            <h3>上线顺序</h3>
+            <div class="button-grid">
+              <button data-task="buildFrontend">1. 构建前端</button>
+              <button data-task="buildServer">2. 构建后端</button>
+              <button data-task="restartFrontend">3. 重启前端</button>
+              <button data-task="restartApi">4. 重启后端</button>
+              <button data-task="savePm2">5. 保存 PM2</button>
+            </div>
+          </div>
+
+          <div class="action-group">
+            <h3>首次启动</h3>
+            <div class="button-grid">
+              <button data-task="startFrontend">启动前端 PM2</button>
+              <button data-task="startApi">启动后端 PM2</button>
+              <button data-task="pm2List">查看 PM2 列表</button>
+            </div>
+          </div>
+
+          <div class="action-group">
+            <h3>数据与检查</h3>
+            <div class="button-grid">
+              <button data-task="backupSqlite">备份 SQLite</button>
+              <button data-action="refresh">验证 CSS / API</button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="log-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Output</p>
+            <h2>执行结果</h2>
+          </div>
+          <button class="icon-button" id="clear-log">清空</button>
+        </div>
+        <pre id="log">准备就绪。这个面板只执行项目内置的白名单操作。</pre>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

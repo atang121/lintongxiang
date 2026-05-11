@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+h5/.next/
+h5/out/
+server/dist/
+
+# Environment files (never commit secrets)
+.env
+.env.local
+.env.*.local
+.env.production
+!.env.example
+!.env.local.example
+
+# Database
+*.db
+*.db-journal
+server/backups/
+
+# Uploads
+server/data/uploads/
+server/data/*.png
+server/data/*.jpg
+server/data/*.jpeg
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PM2
+.pm2/
+
+# Test coverage
+coverage/
+
+# Misc
+*.local
+.vercel

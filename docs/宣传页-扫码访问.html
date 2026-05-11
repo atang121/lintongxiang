@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>童邻市集 · 宣传页</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: #f5f0e8;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 28px;
+    width: 420px;
+    max-width: 100%;
+    overflow: hidden;
+    border: 1px solid rgba(180,160,130,0.2);
+  }
+
+  .hero {
+    background: #2d5a45;
+    padding: 40px 36px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-pattern {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    opacity: 0.06;
+  }
+
+  .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.85);
+    letter-spacing: 0.06em;
+    margin-bottom: 20px;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .logo-icon {
+    width: 52px;
+    height: 52px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,0.2);
+    flex-shrink: 0;
+  }
+
+  .brand-name {
+    font-size: 28px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+  }
+
+  .brand-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 3px;
+    letter-spacing: 0.04em;
+  }
+
+  .tagline {
+    font-size: 15px;
+    color: rgba(255,255,255,0.82);
+    line-height: 1.7;
+    font-weight: 400;
+  }
+
+  .tagline strong {
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .body {
+    padding: 32px 36px;
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .feature-item {
+    background: #f7f3ec;
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+
+  .feature-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #2d5a45;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .feature-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #2c2c2a;
+    margin-bottom: 3px;
+  }
+
+  .feature-desc {
+    font-size: 11px;
+    color: #888780;
+    line-height: 1.5;
+  }
+
+  .qr-section {
+    background: #f7f3ec;
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .qr-wrap {
+    background: #fff;
+    border-radius: 14px;
+    padding: 10px;
+    flex-shrink: 0;
+    border: 1px solid rgba(180,160,130,0.25);
+  }
+
+  #qrcode canvas, #qrcode img {
+    display: block;
+    border-radius: 6px;
+  }
+
+  .qr-info {
+    flex: 1;
+  }
+
+  .qr-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #2c2c2a;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  .qr-url {
+    font-size: 12px;
+    color: #2d5a45;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    margin-bottom: 8px;
+  }
+
+  .qr-hint {
+    font-size: 11px;
+    color: #888780;
+    line-height: 1.6;
+  }
+
+  .footer {
+    padding: 18px 36px;
+    border-top: 1px solid #f0ebe0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .communities {
+    font-size: 11px;
+    color: #888780;
+    line-height: 1.6;
+  }
+
+  .communities span {
+    color: #2d5a45;
+    font-weight: 500;
+  }
+
+  .scope-tag {
+    background: #e8f2ec;
+    color: #2d5a45;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .print-hint {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 12px;
+    color: #aaa8a2;
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .card { box-shadow: none; border: none; width: 100%; max-width: none; }
+    .print-hint { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="card">
+
+    <div class="hero">
+      <svg class="hero-pattern" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice">
+        <circle cx="320" cy="-30" r="120" fill="white"/>
+        <circle cx="380" cy="180" r="80" fill="white"/>
+        <circle cx="-20" cy="200" r="100" fill="white"/>
+        <circle cx="50" cy="-20" r="60" fill="white"/>
+      </svg>
+
+      <div class="badge">东门口 5 个小区试点</div>
+
+      <div class="logo-row">
+        <div class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <path d="M14 4C8.48 4 4 8.48 4 14s4.48 10 10 10 10-4.48 10-10S19.52 4 14 4z" fill="rgba(255,255,255,0.3)"/>
+            <path d="M10 11a2 2 0 100-4 2 2 0 000 4zm8 0a2 2 0 100-4 2 2 0 000 4z" fill="white"/>
+            <path d="M8 17s1.5 3 6 3 6-3 6-3" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            <circle cx="10" cy="9" r="1" fill="white"/>
+            <circle cx="18" cy="9" r="1" fill="white"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">童邻市集</div>
+          <div class="brand-sub">tonglinhui.cn</div>
+        </div>
+      </div>
+
+      <p class="tagline">
+        <strong>孩子长大了的东西，不扔，换给邻居。</strong><br>
+        绘本、玩具、童车……都能在这里找到去处。
+      </p>
+    </div>
+
+    <div class="body">
+      <div class="features">
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7h10M7 2v10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="feature-title">免费发布</div>
+          <div class="feature-desc">拍张照片就能发布，0 元起步</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 2L8.5 5.5L12 6L9.5 8.5L10 12L7 10.5L4 12L4.5 8.5L2 6L5.5 5.5L7 2z" stroke="white" stroke-width="1.2" fill="none" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="feature-title">以物换物</div>
+          <div class="feature-desc">不用钱，用东西换东西</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <rect x="2" y="3" width="10" height="8" rx="2" stroke="white" stroke-width="1.2" fill="none"/>
+              <path d="M5 3V2M9 3V2M2 6h10" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="feature-title">约时间见</div>
+          <div class="feature-desc">线上约好，楼下就能取</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 2C4.24 2 2 4.24 2 7s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z" stroke="white" stroke-width="1.2" fill="none"/>
+              <path d="M7 4.5v3l2 1" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="feature-title">本社区专属</div>
+          <div class="feature-desc">只有东门口邻居参与</div>
+        </div>
+      </div>
+
+      <div class="qr-section">
+        <div class="qr-wrap">
+          <div id="qrcode"></div>
+        </div>
+        <div class="qr-info">
+          <div class="qr-title">扫码进入<br>童邻市集</div>
+          <div class="qr-url">tonglinhui.cn</div>
+          <div class="qr-hint">
+            微信扫码即可访问<br>
+            无需下载 App<br>
+            支持添加到桌面
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="communities">
+        <div>覆盖小区</div>
+        <div><span>梧桐湾 · 清华园 · 丽江泊林</span></div>
+        <div><span>在水一方 · 怡和苑</span></div>
+      </div>
+      <div class="scope-tag">仅限东门口片区</div>
+    </div>
+
+  </div>
+
+  <div class="print-hint">可直接截图 / Ctrl+P 打印 · A4 纸竖版适配</div>
+</div>
+
+<script>
+  new QRCode(document.getElementById('qrcode'), {
+    text: 'https://tonglinhui.cn',
+    width: 108,
+    height: 108,
+    colorDark: '#2d5a45',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+</script>
+</body>
+</html>
