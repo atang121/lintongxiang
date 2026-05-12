@@ -12,6 +12,19 @@ const getBackendUrl = () => {
 
 const BACKEND_API_URL = getBackendUrl();
 
+// 处理 CORS 预检请求
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ path?: string[] }> }
@@ -101,10 +114,17 @@ async function handleRequest(
     // 读取后端响应
     const responseData = await response.json();
 
-    // 返回响应
-    return NextResponse.json(responseData, {
+    // 返回响应，添加 CORS 头
+    const nextResponse = NextResponse.json(responseData, {
       status: response.status,
     });
+    
+    // 添加 CORS 头
+    nextResponse.headers.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
+    nextResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    nextResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return nextResponse;
 
   } catch (error) {
     console.error('[API Proxy] Error:', error);
