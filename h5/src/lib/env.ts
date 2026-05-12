@@ -5,21 +5,24 @@
 
 /**
  * 解析 API 根地址（每次调用，避免模块在 SSR 阶段先执行时把地址锁死成 localhost）。
- * 浏览器内按当前 origin 推断；务必在 Cloudflare/生产环境配置 NEXT_PUBLIC_API_BASE_URL。
+ * 生产环境强制使用同源策略（通过 catch-all API 路由代理到后端）。
  */
 export function resolveApiBaseUrl(): string {
-  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-    return process.env.NEXT_PUBLIC_API_BASE_URL;
-  }
-
+  // 生产环境：强制使用同源策略，忽略 NEXT_PUBLIC_API_BASE_URL
+  // 这样 /api/* 请求会被 catch-all 路由捕获并代理到后端
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
-    const url = new URL(origin);
-    const hostname = url.hostname === '0.0.0.0' ? '127.0.0.1' : url.hostname;
-    const apiPort = url.port === '3000' || url.port === '3001' ? '3001' : url.port || '';
-    return `${url.protocol}//${hostname}${apiPort ? ':' + apiPort : ''}/api`;
+    return `${origin}/api`;
   }
 
+  // 开发环境：可以使用环境变量或默认值
+  if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+      return process.env.NEXT_PUBLIC_API_BASE_URL;
+    }
+  }
+
+  // 服务端渲染或开发环境默认值
   return 'http://localhost:3001/api';
 }
 

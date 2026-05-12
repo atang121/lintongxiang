@@ -7,7 +7,7 @@
     }
   ],
   "env": {
-"NEXT_PUBLIC_API_BASE_URL": "https://api.tonglinhui.cn/api",
-"NEXT_PUBLIC_BASE_URL": "https://tonglinhui.cn"
+    "NEXT_PUBLIC_API_BASE_URL": "https://api.tonglinhui.cn/api",
+    "NEXT_PUBLIC_BASE_URL": "https://www.tonglinhui.cn"
   }
 }
