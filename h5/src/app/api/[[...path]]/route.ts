@@ -1,16 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// 根据环境选择后端 API 地址
-const getBackendUrl = () => {
-  const isProd = process.env.NODE_ENV === 'production';
-  if (isProd) {
-    return 'http://134.175.68.92:3001';
+// 根据环境选择后端 API 地址 - 更智能的检测
+const getBackendUrl = (request?: NextRequest) => {
+  // 优先使用环境变量（Vercel部署时在Dashboard设置）
+  if (process.env.BACKEND_API_URL) {
+    console.log(`[API Proxy] Using BACKEND_API_URL from env: ${process.env.BACKEND_API_URL}`);
+    return process.env.BACKEND_API_URL;
   }
+
+  // 检测是否为生产环境
+  const isProd = process.env.NODE_ENV === 'production' || 
+                 (request && !request.nextUrl.origin.includes('localhost'));
+  
+  if (isProd) {
+    // 生产环境：使用云服务器地址
+    const prodUrl = 'http://134.175.68.92:3001';
+    console.log(`[API Proxy] Production mode, using: ${prodUrl}`);
+    return prodUrl;
+  }
+  
   // 开发环境使用本地后端
+  console.log('[API Proxy] Development mode, using localhost:3001');
   return 'http://localhost:3001';
 };
-
-const BACKEND_API_URL = getBackendUrl();
 
 // 处理 CORS 预检请求
 export async function OPTIONS(request: NextRequest) {
@@ -75,6 +87,9 @@ async function handleRequest(
     const resolvedParams = await params;
     const pathSegments = resolvedParams.path || [];
     const path = pathSegments.join('/');
+
+    // 获取后端 URL（传入 request 以便智能检测环境）
+    const BACKEND_API_URL = getBackendUrl(request);
 
     // 构建后端 API URL
     const url = new URL(`/api/${path}`, BACKEND_API_URL);
