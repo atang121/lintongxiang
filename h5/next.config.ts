@@ -42,21 +42,11 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // API 代理配置（Vercel 部署时使用）
-  // 将 /api/* 请求代理到云服务器后端
-  async rewrites() {
-    // 生产环境代理到云服务器，开发环境使用本地后端
-    const isProd = process.env.NODE_ENV === 'production';
-    if (isProd) {
-      return [
-        {
-          source: '/api/:path*',
-          destination: 'http://134.175.68.92:3001/api/:path*',
-        },
-      ];
-    }
-    return [];
-  },
+  // 注意：API 请求由 src/app/api/[[...path]]/route.ts 处理
+  // 不再使用 rewrites，避免 Vercel 不支持外部 URL 重定向的问题
+  //
+  // 如果将来需要静态导出，可以启用 output: 'export'
+  // output: 'export',
 };
 
 export default nextConfig;
